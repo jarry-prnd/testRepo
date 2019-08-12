@@ -1,0 +1,23 @@
+{% extends 'survey/base.html' %}
+
+{% block content %}
+  {% if responser_list %}
+    <h2>응답자 목록</h2>
+    <div class="main">
+      <ol>
+        {% for responser in responser_list %}
+          <li><a href="{% url 'responser-detail' responser.id %}">{{ responser.phone_number }}</a></li>
+        {% endfor %}
+      </ol>
+    </div>
+  {% else %}
+    <h2>No responsers.</h2>
+  {% endif %}
+
+  <div class="Return" style="margin-left: 20px">
+    <button onClick="return_to_survey_admin()">돌아가기</button>
+    <script>
+      function return_to_survey_admin() { window.location.href = "{% url 'survey-admin' %}"; }
+    </script>
+  </div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'survey/base.html' %}
+
+{% block content %}
+  <div class="main">
+    <h3>연락처 : {{ responser.phone_number }}</h3>
+    <ol>
+      {% for response_record in response_record_list %}
+        <li>
+          {% if response_record.rank > 0 %}
+            <h4>{{ response_record.choice.question.question_text }} [{{ response_record.rank }}순위 응답]</h4>
+          {% else %}
+            <h4>{{ response_record.choice.question.question_text }}</h4>
+          {% endif %}
+          {{ response_record.choice.choice_text }}
+        </li>
+      {% endfor %}
+    <ol>
+  </div>
+
+  <div class="Return" style="margin-left: 20px">
+    <button onClick="get_responsers()">돌아가기</button>
+    <script>
+      function get_responsers() { window.location.href = "{% url 'responser-list' %}"; }
+    </script>
+  </div>
+{% endblock %}

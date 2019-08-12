@@ -1,0 +1,48 @@
+{% extends 'survey/base.html' %}
+
+{% block content %}
+  <form action="{% url 'test' %}" method="post">
+    {% csrf_token %}
+    {{ forms.management_form }}
+    <table>
+      <ol class="question-list">
+        {% for form in forms %}
+          <li>
+            <h4><strong>{{ form.question_text.value }}</strong></h4>
+            <div class="error messages">
+              {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                  <p style="color: red">{{ error }}</p>
+                {% endfor %}
+              {% endif %}
+              {% if form.choice_list.errors %}
+                {% for error in form.choice_list.errors %}
+                  <p style="color: red">{{ error }}</p>
+                {% endfor %}
+              {% endif %}
+            </div>
+            <div class="hidden field">
+              {{ form.question_id }}
+              {{ form.question_type }}
+              {{ form.question_text }}
+              {{ form.limit }}
+            </div>
+            <div class="choice-list">
+              {% if form.question_type.value == "select" %}
+                {{ form.choice_list }}
+              {% elif form.question_type.value == "radio" or form.question_type.value == "checkbox" %}
+                {% for choice in form.choice_list %}
+                  {{ choice }}<br>
+                {% endfor %}
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ol>
+    </table>
+
+    <div style="margin-left: 20px; margin-top: 20px">
+      <input type="submit" value="제출">
+    </div>
+  </form>
+{% endblock %}

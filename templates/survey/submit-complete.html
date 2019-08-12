@@ -1,0 +1,9 @@
+{% extends 'survey/base.html' %}
+
+{% block content %}
+  <h1>설문지 제출 완료</h1>
+  <button onClick="return_to_index()">돌아가기</button>
+  <script>
+    function return_to_index() { window.location.href = "{% url 'test' %}"; }
+  </script>
+{% endblock %}

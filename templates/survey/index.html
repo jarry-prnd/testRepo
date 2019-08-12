@@ -1,0 +1,113 @@
+{% extends 'survey/base.html' %}
+
+{% block content %}
+  {% if question_list %}
+    <div class="main">
+      <form action="{% url 'submit' %}" method='post'>
+        {% csrf_token %}
+        <ol>
+        {% for question in question_list %}
+          <li>
+            <div class="question text">
+              <strong>{{ question.question_text }}</strong><br>
+            </div>
+
+            <div class="question choices">
+              {% if question.question_type == "select" %}
+                <select name="{{ question.id }}">
+                  {% for choice in question.choices.all %}
+                    <option value="{{ choice.id }}">{{ choice.choice_text }}</option>
+                  {% endfor %}
+                </select>
+
+              {% elif question.question_type == "radio" %}
+                {% for choice in question.choices.all %}
+                  <input type="radio" id="{{ choice.id }}" name="{{ question.id }}" value="{{ choice.id }}">
+                  <label for="{{ choice.id }}">{{ choice.choice_text }}</label><br>
+                {% endfor %}
+
+              {% elif question.question_type == "checkbox" %}
+                {% for choice in question.choices.all %}
+                  <input type="checkbox" id="{{ choice.id }}" name="{{ question.id }}" value="{{ choice.id }}">
+                  <label for="{{ choice.id }}">{{ choice.choice_text }}</label><br>
+                {% endfor %}
+                <input type="hidden" name="{{ question.id }}_sorted">
+                <script type='text/javascript'>
+                  $(document).ready(function() {
+                    var checkbox_list = [];
+                    var checkbox_text_list = [];
+
+                    $('input:checkbox[name="{{ question.id }}"]').on('click', function() {
+                      const selector = "label[for='"+$(this).attr("id")+"']";
+                      const choice_id = $(this).attr("id")
+
+                      if ($(this).prop('checked')) {
+                        checked_num = $('input:checkbox[name="{{ question.id }}"]:checked').length
+
+                        if (checked_num > "{{ question.limit }}") {
+                          alert('최대 '+"{{question.limit}}"+'개까지만 선택 가능합니다.')
+                          $(this).prop("checked", false);
+                        }
+
+                        else {
+                          checkbox_list.push(choice_id);
+                          checkbox_text_list.push($(selector).text());
+                          const idx = checkbox_list.indexOf(choice_id)
+                          $(selector).text(checkbox_text_list[idx]+" ["+(idx+1)+"순위]");
+                          $('input[name="{{ question.id }}_sorted"]').val(checkbox_list.join(","))
+                        }
+                      }
+
+                      else {
+                        const idx = checkbox_list.indexOf(choice_id);
+                        $(selector).text(checkbox_text_list[idx]);
+                        checkbox_list.splice(idx, 1);
+                        checkbox_text_list.splice(idx, 1);
+
+                        for (var i=0; i<checkbox_list.length; i++) {
+                          const s = "label[for='"+checkbox_list[i]+"']"
+                          $(s).text(checkbox_text_list[i]+" ["+(i+1)+"순위]");
+                        }
+                        $('input[name="{{ question.id }}_sorted"]').val(checkbox_list.join(","))
+                      }
+                    });
+                  });
+                </script>
+
+              {% endif %}
+            </div>
+          </li><br>
+        {% endfor %}
+        </ol>
+
+        <div class="enter phone_number and submit" style="margin-left: 20px">
+          연락처 : <input name="phone_number" type="text">
+          <input type="submit" value="제출">
+        </div>
+      </form>
+    </div>
+
+  {% else %}
+    <div style="margin-left: 20px"><h2>설문 문항이 존재하지 않습니다.</h2></div>
+
+  {% endif %}
+
+  {% if user.is_anonymous %}
+    <div class="when not logined : 1. Login" style="margin-left: 20px">
+      <button onClick="redirect_to_login_page()">관리자 계정 로그인</button>
+      <script>
+        function redirect_to_login_page() { window.location.href = "{% url 'login' %}"; }
+      </script>
+    </div>
+
+  {% else %}
+    <div class="when logined : 1. Logout, 2. Go to admin page" style="margin-left: 20px">
+      <button onClick="logout()">로그아웃</button>
+      <button onClick="redirect_to_admin_page()">관리자 페이지로</button>
+      <script>
+        function logout() { window.location.href = "{% url 'logout' %}"; }
+        function redirect_to_admin_page() { window.location.href = "{% url 'survey-admin' %}"; }
+      </script>
+    </div>
+  {% endif %}
+{% endblock %}

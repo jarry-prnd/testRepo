@@ -1,0 +1,114 @@
+{% extends 'survey/base.html' %}
+
+{% block content %}
+  <div class="question POST" style="margin-left: 20px">
+    <form action="{% url 'question-post' %}" method="post">
+      {% csrf_token %}
+      <strong>질문 제목</strong> : <input type="text" name="question_text" size="68px">
+      <select name="question_type">
+        <option value="select" selected>Drop Down (1개 체크)</option>
+        <option value="radio">Radio (1개 체크)</option>
+        <option value="checkbox">Checkbox (복수 체크)</option>
+      </select>
+      <input type="number" name="limit" min="1" placeholder="최대 체크 갯수" style="width: 150px">
+      <input type="submit" value="질문 추가">
+    </form>
+  </div><br>
+  {% if question_list %}
+    <div class="main">
+      <ol>
+        {% for question in question_list %}
+          <li>
+            <div class="question PUT/DELETE">
+              <div class="question PUT">
+                <form action="{% url 'question-detail' question.id %}" method="post" style="float: left; margin: 0">
+                  {% csrf_token %}
+                  <input type="text" name="question_text" value="{{ question.question_text }}" size="75px">
+                  <select name="question_type">
+                    {% if question.question_type == "select" %}
+                      <option value="select" selected>Drop Down (1개 체크)</option>
+                      <option value="radio">Radio (1개 체크)</option>
+                      <option value="checkbox">Checkbox (복수 체크)</option>
+                    {% elif question.question_type == "radio" %}
+                      <option value="select">Drop Down (1개 체크)</option>
+                      <option value="radio" selected>Radio (1개 체크)</option>
+                      <option value="checkbox">Checkbox (복수 체크)</option>
+                    {% elif question.question_type == "checkbox" %}
+                      <option value="select">Drop Down (1개 체크)</option>
+                      <option value="radio">Radio (1개 체크)</option>
+                      <option value="checkbox" selected>Checkbox (복수 체크)</option>
+                    {% endif %}
+                  </select>
+                  <input type="number" name="limit" min="1" value="{{ question.limit }}">
+                  <input type="submit" value="질문 수정">
+                </form>
+              </div>
+              <div class="question DELETE">
+                <form action="{% url 'question-detail' question.id %}" method="get">
+                  <input type="submit" value="질문 삭제" style="margin-left: 5px;">
+                </form>
+              </div>
+            </div>
+
+            <ul>
+              {% for choice in question.choices.all %}
+                <li>
+                  <div class="choice PUT/DELETE">
+                    <div class="choice PUT">
+                      <form action="{% url 'choice-detail' choice.id %}" method="post" style="float: left; margin: 0">
+                        {% csrf_token %}
+                        <input type="text" name="choice_text" value="{{ choice.choice_text }}" size="60px">&ensp;
+                        ({{ choice.response_num }}표 : {% widthratio choice.response_num question.response_num_total 100 %}%)
+                        <input type="hidden" name="question" value="{{ question.id }}">
+                        <input type="submit" value="수정">
+                      </form>
+                    </div>
+                    <div class="choice DELETE">
+                      <form action="{% url 'choice-detail' choice.id %}" method="get">
+                        {% csrf_token %}
+                        <input type="submit" value="삭제" style="margin-left: 5px">
+                      </form>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+
+              <div class="choice POST">
+                <li>
+                  <form action="{% url 'choice-post' %}" method="post">
+                    {% csrf_token %}
+                    <input type="text" name="choice_text" size="60px">&ensp;
+                    <input type="hidden" name="question" value="{{ question.id }}">
+                    <input type="submit" value="선택지 추가">
+                  </form>
+                </li>
+              </div>
+            </ul>
+          </li><br>
+        {% endfor %}
+      </ol>
+    </div>
+
+  {% else %}
+    <div style="margin-left: 20px"><h2>설문 문항이 존재하지 않습니다.</h2></div>
+
+  {% endif %}
+
+  <div class="1. Return, 2. Download CSV, 3. Look at responsers" style="margin-left: 20px">
+    <button onClick="return_to_index()">돌아가기</button>
+    <button onClick="csv_download()">설문 집계 결과 다운(.csv)</button>
+    <button onClick="get_responsers()">응답자 확인</button>
+    <script>
+      function return_to_index() { window.location.href = "{% url 'index' %}"; }
+      function csv_download() { window.location.href = "{% url 'csv-download' %}"; }
+      function get_responsers() { window.location.href = "{% url 'responser-list' %}"; }
+    </script>
+  </div>
+
+  <script type="text/javascript">
+    $("input[type='number']").keypress(function (evt) { evt.preventDefault() });
+    //$('input[name="question_type"]').on("propertychange change keyup paste input", function() {
+    //  alert($(this).val());
+    //});
+  </script>
+{% endblock %}
